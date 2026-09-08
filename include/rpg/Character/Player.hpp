@@ -11,5 +11,6 @@ public:
     int getLevel() const;
     int getExperiencia() const;
     void ganharExperiencia(int quantidade);
+    int experienciaNecessaria() const;
     Player(const std::string& nome);
 };

@@ -4,14 +4,19 @@
 #include "rpg/World/Map.hpp"
 #include "rpg/Game/Game.hpp"
 #include "rpg/Game/Combat.hpp"
+
 #include <iostream>
 #include <string>
 
 void check(int result, int expected, const std::string& testName);
 
 int main()
-{   
-    std::cout << '\n';
+{
+    // =========================================================
+    // Game - movimento
+    // =========================================================
+
+    std::cout << "\n--- Game / Movimento ---\n";
 
     Game game("Player", 10, 8);
 
@@ -25,7 +30,35 @@ int main()
     check(game.getPlayer().getPosicao().x, 4, "Game::movimento invalido mantem x");
     check(game.getPlayer().getPosicao().y, 6, "Game::movimento invalido mantem y");
 
-	std::cout << '\n';
+    // =========================================================
+    // Game - recompensa de experiencia
+    // =========================================================
+
+    std::cout << "\n--- Game / Recompensa de Experiencia ---\n";
+
+    Game xpGame("Player", 10, 8);
+    Monster xpGameGoblin("Goblin", 5, 10, 50);
+
+    xpGameGoblin.receberDano(90);
+
+    check(xpGameGoblin.getVida(), 10, "Game::Goblin antes do golpe final");
+    check(xpGame.getPlayer().getExperiencia(), 0, "Game::Player XP antes da vitoria");
+
+    int danoFinal = xpGame.atacarMonster(xpGameGoblin);
+
+    check(danoFinal, 10, "Game::golpe final");
+    check(xpGameGoblin.estaVivo(), false, "Game::Goblin derrotado");
+    check(xpGame.getPlayer().getExperiencia(), 50, "Game::Player recebe XP");
+
+    xpGame.atacarMonster(xpGameGoblin);
+
+    check(xpGame.getPlayer().getExperiencia(), 50, "Game::nao recebe XP duplicado");
+
+    // =========================================================
+    // Character - estaVivo
+    // =========================================================
+
+    std::cout << "\n--- Character / estaVivo ---\n";
 
     Character aliveCharacter("Alive");
 
@@ -37,21 +70,27 @@ int main()
     aliveCharacter.receberDano(1);
     check(aliveCharacter.estaVivo(), false, "Character::estaVivo com 0 de vida");
 
-    std::cout << '\n';
+    // =========================================================
+    // Character - ataque
+    // =========================================================
+
+    std::cout << "\n--- Character / Ataque ---\n";
 
     Character attacker("Attacker", 5, 15);
 
-    check(attacker.getAtaqueMinimo(), 5, "Character::ataque minimo inicial");
-    check(attacker.getAtaqueMaximo(), 15, "Character::ataque maximo inicial");
+    check(attacker.getAtaqueMinimo(), 5, "Character::ataque minimo");
+    check(attacker.getAtaqueMaximo(), 15, "Character::ataque maximo");
 
-    std::cout << '\n';
+    // =========================================================
+    // Combat
+    // =========================================================
 
-    Player player("Player");
+    std::cout << "\n--- Combat ---\n";
 
     Combat combat;
 
     Player combatPlayer("Player");
-    Monster combatMonster("Goblin", 10, 20);
+    Monster combatMonster("Goblin", 10, 20, 50);
 
     check(combatPlayer.getVida(), 100, "Combat::player vida inicial");
     check(combatMonster.getVida(), 100, "Combat::monster vida inicial");
@@ -63,120 +102,144 @@ int main()
 
     int danoMonster = combat.atacar(combatMonster, combatPlayer);
 
-    check(danoMonster, 10, "Combat::dano monster");
-    check(combatPlayer.getVida(), 90, "Combat::player recebe dano");
+    check(danoMonster >= 10 && danoMonster <= 20, true, "Combat::dano monster na faixa");
+    check(combatPlayer.getVida(), 100 - danoMonster, "Combat::player recebe dano");
 
     combatMonster.receberDano(100);
 
     check(combatMonster.estaVivo(), false, "Combat::monster morto");
     check(combat.atacar(combatMonster, combatPlayer), 0, "Combat::morto nao ataca");
 
-    std::cout << '\n';
+    // =========================================================
+    // Player - experiencia e level
+    // =========================================================
+
+    std::cout << "\n--- Player / Experiencia ---\n";
 
     Player xpPlayer("Player");
 
+    check(xpPlayer.getLevel(), 1, "Player::level inicial");
+    check(xpPlayer.getExperiencia(), 0, "Player::experiencia inicial");
+    check(xpPlayer.experienciaNecessaria(), 100, "Player::XP necessaria level 1");
+
     xpPlayer.ganharExperiencia(50);
+
+    check(xpPlayer.getLevel(), 1, "Player::continua level 1");
     check(xpPlayer.getExperiencia(), 50, "Player::ganha 50 XP");
 
+    xpPlayer.ganharExperiencia(50);
+
+    check(xpPlayer.getLevel(), 2, "Player::sobe para level 2");
+    check(xpPlayer.getExperiencia(), 0, "Player::XP apos level up");
+    check(xpPlayer.experienciaNecessaria(), 200, "Player::XP necessaria level 2");
+
     xpPlayer.ganharExperiencia(30);
-    check(xpPlayer.getExperiencia(), 80, "Player::acumula XP");
+
+    check(xpPlayer.getExperiencia(), 30, "Player::acumula XP");
 
     xpPlayer.ganharExperiencia(-20);
-    check(xpPlayer.getExperiencia(), 80, "Player::ignora XP negativo");
 
-    std::cout << '\n';
+    check(xpPlayer.getExperiencia(), 30, "Player::ignora XP negativo");
+
+    // Teste de varios levels de uma vez
+    Player multiLevelPlayer("Player");
+
+    multiLevelPlayer.ganharExperiencia(350);
+
+    check(multiLevelPlayer.getLevel(), 3, "Player::sobe varios levels");
+    check(multiLevelPlayer.getExperiencia(), 50, "Player::mantem XP excedente");
+
+    // =========================================================
+    // Player - heranca
+    // =========================================================
+
+    std::cout << "\n--- Player / Heranca ---\n";
+
+    Player player("Player");
 
     check(player.getName() == "Player", true, "Player::nome");
     check(player.getLevel(), 1, "Player::level inicial");
     check(player.getExperiencia(), 0, "Player::experiencia inicial");
-
     check(player.getVida(), 100, "Player::vida herdada");
 
     player.receberDano(25);
+
     check(player.getVida(), 75, "Player::receberDano herdado");
 
-	std::cout << '\n';
+    // =========================================================
+    // Monster
+    // =========================================================
 
-    Monster monster("Monster", 10, 20);
+    std::cout << "\n--- Monster ---\n";
 
-	check(monster.getName() == "Monster", true, "Monster::nome");
+    Monster monster("Monster", 10, 20, 50);
+
+    check(monster.getName() == "Monster", true, "Monster::nome");
     check(monster.getVida(), 100, "Monster::vida inicial");
+    check(monster.getExperienciaRecompensa(), 50, "Monster::recompensa XP");
 
     monster.receberDano(40);
+
     check(monster.getVida(), 60, "Monster::receberDano herdado");
 
-    check(danoMonster >= 10 && danoMonster <= 20, true, "Combat::dano monster na faixa");
-    check(combatPlayer.getVida(), 100 - danoMonster, "Combat::player recebe dano");
+    // =========================================================
+    // Goblin / Ogre / Dragon
+    // =========================================================
 
-    std::cout << '\n';
+    std::cout << "\n--- Monstros ---\n";
 
-    Monster goblin("Goblin", 5, 10);
-    Monster ogre("Ogre", 10, 20);
-    Monster dragon("Dragon", 20, 35);
+    Monster goblin("Goblin", 5, 10, 50);
+    Monster ogre("Ogre", 10, 20, 100);
+    Monster dragon("Dragon", 20, 35, 200);
 
     check(goblin.getAtaqueMinimo(), 5, "Goblin::ataque minimo");
     check(goblin.getAtaqueMaximo(), 10, "Goblin::ataque maximo");
+    check(goblin.getExperienciaRecompensa(), 50, "Goblin::recompensa XP");
 
     check(ogre.getAtaqueMinimo(), 10, "Ogre::ataque minimo");
     check(ogre.getAtaqueMaximo(), 20, "Ogre::ataque maximo");
+    check(ogre.getExperienciaRecompensa(), 100, "Ogre::recompensa XP");
 
     check(dragon.getAtaqueMinimo(), 20, "Dragon::ataque minimo");
     check(dragon.getAtaqueMaximo(), 35, "Dragon::ataque maximo");
+    check(dragon.getExperienciaRecompensa(), 200, "Dragon::recompensa XP");
 
-    std::cout << '\n';
+    // =========================================================
+    // Game - combate
+    // =========================================================
+
+    std::cout << "\n--- Game / Combate ---\n";
 
     Game combatGame("Player", 10, 8);
-    Monster gameGoblin("Goblin", 5, 10);
+    Monster gameGoblin("Goblin", 5, 10, 50);
 
-    int dano = combatGame.atacarMonster(gameGoblin);
+    int danoGamePlayer = combatGame.atacarMonster(gameGoblin);
 
-    check(dano, 10, "Game::player causa dano");
+    check(danoGamePlayer, 10, "Game::player causa dano");
     check(gameGoblin.getVida(), 90, "Game::monster recebe dano");
 
-    std::cout << '\n';
-
     Game combatGame2("Player", 10, 8);
-    Monster attackingGoblin("Goblin", 5, 10);
+    Monster attackingGoblin("Goblin", 5, 10, 50);
 
     int danoGoblin = combatGame2.atacarPlayer(attackingGoblin);
 
     check(danoGoblin >= 5 && danoGoblin <= 10, true, "Game::monster dano na faixa");
     check(combatGame2.getPlayer().getVida(), 100 - danoGoblin, "Game::player recebe dano");
 
-    std::cout << '\n';
+    // =========================================================
+    // Character - estado inicial e dano
+    // =========================================================
+
+    std::cout << "\n--- Character / Vida ---\n";
 
     Character character("Character");
 
     check(character.getName() == "Character", true, "Character::nome");
     check(character.getVida(), 100, "Character::vida inicial");
+    check(character.getVidaMaxima(), 100, "Character::vida maxima inicial");
 
     character.receberDano(20);
     check(character.getVida(), 80, "Character::receberDano 20");
-
-    std::cout << '\n';
-
-    Map map(10, 8);
-
-    check(map.posicaoValida({ 0, 0 }), true, "Map::posicao inicial valida");
-    check(map.posicaoValida({ 9, 7 }), true, "Map::posicao limite valida");
-    check(map.posicaoValida({ -1, 0 }), false, "Map::x negativo");
-    check(map.posicaoValida({ 0, -1 }), false, "Map::y negativo");
-    check(map.posicaoValida({ 10, 0 }), false, "Map::x fora do limite");
-    check(map.posicaoValida({ 0, 8 }), false, "Map::y fora do limite");
-
-    std::cout << '\n';
-
-    character.moverPara({ 3, 5 });
-
-    check(character.getPosicao().x, 3, "Character::posicao x");
-    check(character.getPosicao().y, 5, "Character::posicao y");
-
-    character.moverPara({ 8, 2 });
-
-    check(character.getPosicao().x, 8, "Character::nova posicao x");
-    check(character.getPosicao().y, 2, "Character::nova posicao y");
-
-    std::cout << '\n';
 
     character.receberDano(20);
     check(character.getVida(), 60, "Character::receberDano 20 novamente");
@@ -193,7 +256,11 @@ int main()
     character.receberDano(-10);
     check(character.getVida(), 0, "Character::dano negativo");
 
-    std::cout << '\n';
+    // =========================================================
+    // Character - recuperar vida
+    // =========================================================
+
+    std::cout << "\n--- Character / Recuperar Vida ---\n";
 
     character.recuperarVida(30);
     check(character.getVida(), 30, "Character::recuperarVida 30");
@@ -202,7 +269,7 @@ int main()
     check(character.getVida(), 80, "Character::recuperarVida 50");
 
     character.recuperarVida(50);
-    check(character.getVida(), 100, "Character::vida maxima");
+    check(character.getVida(), 100, "Character::limite vida maxima");
 
     character.recuperarVida(0);
     check(character.getVida(), 100, "Character::recuperarVida zero");
@@ -210,7 +277,14 @@ int main()
     character.recuperarVida(-20);
     check(character.getVida(), 100, "Character::recuperarVida negativa");
 
-    std::cout << '\n';
+    // =========================================================
+    // Character - mana
+    // =========================================================
+
+    std::cout << "\n--- Character / Mana ---\n";
+
+    check(character.getMana(), 100, "Character::mana inicial");
+    check(character.getManaMaxima(), 100, "Character::mana maxima inicial");
 
     character.gastarMana(30);
     check(character.getMana(), 70, "Character::gastarMana 30");
@@ -221,8 +295,6 @@ int main()
     character.gastarMana(-10);
     check(character.getMana(), 0, "Character::gastarMana negativa");
 
-    std::cout << '\n';
-
     character.recuperarMana(40);
     check(character.getMana(), 40, "Character::recuperarMana 40");
 
@@ -231,6 +303,44 @@ int main()
 
     character.recuperarMana(-20);
     check(character.getMana(), 100, "Character::recuperarMana negativa");
+
+    // =========================================================
+    // Map
+    // =========================================================
+
+    std::cout << "\n--- Map ---\n";
+
+    Map map(10, 8);
+
+    check(map.getLargura(), 10, "Map::largura");
+    check(map.getAltura(), 8, "Map::altura");
+
+    check(map.posicaoValida({ 0, 0 }), true, "Map::posicao inicial valida");
+    check(map.posicaoValida({ 9, 7 }), true, "Map::posicao limite valida");
+
+    check(map.posicaoValida({ -1, 0 }), false, "Map::x negativo");
+    check(map.posicaoValida({ 0, -1 }), false, "Map::y negativo");
+
+    check(map.posicaoValida({ 10, 0 }), false, "Map::x fora do limite");
+    check(map.posicaoValida({ 0, 8 }), false, "Map::y fora do limite");
+
+    // =========================================================
+    // Character - movimento
+    // =========================================================
+
+    std::cout << "\n--- Character / Movimento ---\n";
+
+    Character movingCharacter("MovingCharacter");
+
+    movingCharacter.moverPara({ 3, 5 });
+
+    check(movingCharacter.getPosicao().x, 3, "Character::posicao x");
+    check(movingCharacter.getPosicao().y, 5, "Character::posicao y");
+
+    movingCharacter.moverPara({ 8, 2 });
+
+    check(movingCharacter.getPosicao().x, 8, "Character::nova posicao x");
+    check(movingCharacter.getPosicao().y, 2, "Character::nova posicao y");
 
     return 0;
 }
@@ -241,6 +351,6 @@ void check(int result, int expected, const std::string& testName)
         std::cout << "[PASS] " << testName << '\n';
     }
     else {
-        std::cout << "[FAIL] " << testName << '\n';
+        std::cout << "[FAIL] " << testName << " | esperado: " << expected << " | recebido: " << result << '\n';
     }
 }

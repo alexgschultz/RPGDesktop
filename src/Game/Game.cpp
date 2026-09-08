@@ -19,7 +19,15 @@ const Player& Game::getPlayer() const
 
 int Game::atacarMonster(Monster& monster)
 {
-    return combat.atacar(player, monster);
+    bool estavaVivo = monster.estaVivo();
+
+    int dano = combat.atacar(player, monster);
+
+    if (estavaVivo && !monster.estaVivo()) {
+        player.ganharExperiencia(monster.getExperienciaRecompensa());
+    }
+
+    return dano;
 }
 
 int Game::atacarPlayer(const Monster& monster)
