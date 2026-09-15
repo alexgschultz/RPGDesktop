@@ -4,6 +4,8 @@
 #include "rpg/World/Map.hpp"
 #include "rpg/Game/Game.hpp"
 #include "rpg/Game/Combat.hpp"
+#include "rpg/Inventory/Item.hpp"
+#include "rpg/Inventory/Inventory.hpp"
 
 #include <iostream>
 #include <string>
@@ -203,6 +205,94 @@ int main()
     check(dragon.getAtaqueMinimo(), 20, "Dragon::ataque minimo");
     check(dragon.getAtaqueMaximo(), 35, "Dragon::ataque maximo");
     check(dragon.getExperienciaRecompensa(), 200, "Dragon::recompensa XP");
+
+    // =========================================================
+    // Item
+    // =========================================================
+
+    std::cout << "\n--- Item ---\n";
+
+    Item pocaoCura("Pocao de Cura", ItemType::Cura);
+    Item pocaoMana("Pocao de Mana", ItemType::Mana);
+
+    check(pocaoCura.getName() == "Pocao de Cura", true, "Item::nome cura");
+    check(pocaoCura.getType() == ItemType::Cura, true, "Item::tipo cura");
+
+    check(pocaoMana.getName() == "Pocao de Mana", true, "Item::nome mana");
+    check(pocaoMana.getType() == ItemType::Mana, true, "Item::tipo mana");
+
+    // =========================================================
+    // Inventory
+    // =========================================================
+
+    std::cout << "\n--- Inventory ---\n";
+
+    Inventory inventory;
+
+    check(inventory.quantidade(), 0, "Inventory::quantidade inicial");
+
+    inventory.adicionar(pocaoCura);
+    check(inventory.quantidade(), 1, "Inventory::adiciona item");
+
+    inventory.adicionar(pocaoMana);
+    check(inventory.quantidade(), 2, "Inventory::adiciona segundo item");
+
+    check(inventory.remover(0), true, "Inventory::remove primeiro item");
+    check(inventory.quantidade(), 1, "Inventory::quantidade apos remover");
+
+    check(inventory.remover(10), false, "Inventory::indice invalido");
+    check(inventory.quantidade(), 1, "Inventory::quantidade mantida");
+
+    check(inventory.remover(-1), false, "Inventory::indice negativo");
+
+    std::cout << "\n--- Inventory / Usar Item ---\n";
+
+    Inventory useInventory;
+
+    Item cura("Pocao de Cura", ItemType::Cura);
+    Item mana("Pocao de Mana", ItemType::Mana);
+
+    useInventory.adicionar(cura);
+    useInventory.adicionar(mana);
+
+    Character itemCharacter("Character");
+
+    itemCharacter.receberDano(80);
+    check(itemCharacter.getVida(), 20, "Inventory::vida antes da cura");
+
+    check(useInventory.usar(0, itemCharacter), true, "Inventory::usa item de cura");
+    check(itemCharacter.getVida(), 70, "Inventory::cura 50 porcento");
+    check(useInventory.quantidade(), 1, "Inventory::remove item usado");
+
+    itemCharacter.gastarMana(80);
+    check(itemCharacter.getMana(), 20, "Inventory::mana antes da recuperacao");
+
+    check(useInventory.usar(0, itemCharacter), true, "Inventory::usa item de mana");
+    check(itemCharacter.getMana(), 70, "Inventory::recupera 50 porcento mana");
+    check(useInventory.quantidade(), 0, "Inventory::remove item de mana");
+
+    check(useInventory.usar(0, itemCharacter), false, "Inventory::nao usa indice invalido");
+
+    // =========================================================
+    // Player - Inventory
+    // =========================================================
+
+    std::cout << "\n--- Player / Inventory ---\n";
+
+    Player inventoryPlayer("Player");
+
+    inventoryPlayer.getInventory().adicionar(pocaoCura);
+
+    check(inventoryPlayer.getInventory().quantidade(), 1, "Player::possui item no inventario");
+
+    inventoryPlayer.receberDano(80);
+
+    check(inventoryPlayer.getVida(), 20, "Player::vida antes de usar cura");
+
+    check(inventoryPlayer.getInventory().usar(0, inventoryPlayer), true, "Player::usa item de cura");
+
+    check(inventoryPlayer.getVida(), 70, "Player::vida apos usar cura");
+    check(inventoryPlayer.getInventory().quantidade(), 0, "Player::inventario remove item usado");
 
     // =========================================================
     // Game - combate

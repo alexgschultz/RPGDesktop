@@ -2,6 +2,16 @@
 
 Player::Player(const std::string& nome) : Character(nome, 10, 10) {}
 
+Inventory& Player::getInventory()
+{
+	return inventory;
+}
+
+const Inventory& Player::getInventory() const
+{
+	return inventory;
+}
+
 int Player::getLevel() const
 {
 	return level;
