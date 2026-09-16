@@ -12,6 +12,8 @@ add_executable(RPGTest
 	src/Game/Combat.cpp
 	src/Inventory/Item.cpp
 	src/Inventory/Inventory.cpp
+	src/World/Region.cpp
+	src/World/World.cpp
 )
 
 target_include_directories(RPGTest PRIVATE include)

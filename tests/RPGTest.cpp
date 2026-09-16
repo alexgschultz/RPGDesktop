@@ -6,6 +6,8 @@
 #include "rpg/Game/Combat.hpp"
 #include "rpg/Inventory/Item.hpp"
 #include "rpg/Inventory/Inventory.hpp"
+#include "rpg/World/Region.hpp"
+#include "rpg/World/World.hpp"
 
 #include <iostream>
 #include <string>
@@ -413,6 +415,65 @@ int main()
 
     check(map.posicaoValida({ 10, 0 }), false, "Map::x fora do limite");
     check(map.posicaoValida({ 0, 8 }), false, "Map::y fora do limite");
+
+    // =========================================================
+    // Region
+    // =========================================================
+
+    std::cout << "\n--- Region ---\n";
+
+    Region village(RegionType::Village, 10, 8);
+    Region forest(RegionType::Forest, 20, 15);
+    Region cave(RegionType::Cave, 12, 10);
+
+    check(village.getType() == RegionType::Village, true, "Region::Village tipo");
+    check(forest.getType() == RegionType::Forest, true, "Region::Forest tipo");
+    check(cave.getType() == RegionType::Cave, true, "Region::Cave tipo");
+
+    check(village.getMap().getLargura(), 10, "Region::Village largura");
+    check(village.getMap().getAltura(), 8, "Region::Village altura");
+
+    check(forest.getMap().getLargura(), 20, "Region::Forest largura");
+    check(cave.getMap().getAltura(), 10, "Region::Cave altura");
+
+    // =========================================================
+    // World
+    // =========================================================
+
+    std::cout << "\n--- World ---\n";
+
+    World world;
+
+    check(world.getCurrentRegionType() == RegionType::Village, true, "World::regiao inicial Village");
+
+    check(world.getCurrentRegion().getType() == RegionType::Village, true, "World::retorna Village");
+    check(world.getCurrentRegion().getMap().getLargura(), 10, "World::Village largura");
+    check(world.getCurrentRegion().getMap().getAltura(), 8, "World::Village altura");
+
+    world.changeRegion(RegionType::Forest);
+
+    check(world.getCurrentRegionType() == RegionType::Forest, true, "World::muda para Forest");
+    check(world.getCurrentRegion().getMap().getLargura(), 20, "World::Forest largura");
+    check(world.getCurrentRegion().getMap().getAltura(), 15, "World::Forest altura");
+
+    world.changeRegion(RegionType::Cave);
+
+    check(world.getCurrentRegionType() == RegionType::Cave, true, "World::muda para Cave");
+    check(world.getCurrentRegion().getMap().getLargura(), 12, "World::Cave largura");
+    check(world.getCurrentRegion().getMap().getAltura(), 10, "World::Cave altura");
+
+    World progressionWorld;
+
+    check(progressionWorld.getCurrentRegionType() == RegionType::Village, true, "World::progressao inicia Village");
+
+    check(progressionWorld.advanceRegion(), true, "World::avanca para Forest");
+    check(progressionWorld.getCurrentRegionType() == RegionType::Forest, true, "World::regiao Forest");
+
+    check(progressionWorld.advanceRegion(), true, "World::avanca para Cave");
+    check(progressionWorld.getCurrentRegionType() == RegionType::Cave, true, "World::regiao Cave");
+
+    check(progressionWorld.advanceRegion(), false, "World::Cave nao possui proxima regiao");
+    check(progressionWorld.getCurrentRegionType() == RegionType::Cave, true, "World::permanece na Cave");
 
     // =========================================================
     // Character - movimento
