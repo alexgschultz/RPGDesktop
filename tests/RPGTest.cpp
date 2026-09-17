@@ -8,6 +8,7 @@
 #include "rpg/Inventory/Inventory.hpp"
 #include "rpg/World/Region.hpp"
 #include "rpg/World/World.hpp"
+#include "rpg/Game/GameState.hpp"
 
 #include <iostream>
 #include <string>
@@ -474,6 +475,60 @@ int main()
 
     check(progressionWorld.advanceRegion(), false, "World::Cave nao possui proxima regiao");
     check(progressionWorld.getCurrentRegionType() == RegionType::Cave, true, "World::permanece na Cave");
+
+    // =========================================================
+    // GameState
+    // =========================================================
+
+    std::cout << "\n--- GameState ---\n";
+
+    GameState gameState("Player");
+
+    check(gameState.getVidas(), 3, "GameState::vidas iniciais");
+
+    check(gameState.perderVida(), true, "GameState::perde primeira vida");
+    check(gameState.getVidas(), 2, "GameState::restam 2 vidas");
+
+    check(gameState.perderVida(), true, "GameState::perde segunda vida");
+    check(gameState.getVidas(), 1, "GameState::resta 1 vida");
+
+    check(gameState.perderVida(), false, "GameState::perde ultima vida");
+    check(gameState.getVidas(), 0, "GameState::sem vidas");
+
+    check(gameState.perderVida(), false, "GameState::nao perde vida abaixo de zero");
+    check(gameState.getVidas(), 0, "GameState::vidas permanecem em zero");
+
+    check(gameState.getPlayer().getName() == "Player", true, "GameState::possui Player");
+    check(gameState.getWorld().getCurrentRegionType() == RegionType::Village, true, "GameState::World inicia em Village");
+
+    GameState deathState("Player");
+
+    check(deathState.estaGameOver(), false, "GameState::jogo inicia ativo");
+
+    deathState.perderVida();
+    check(deathState.estaGameOver(), false, "GameState::continua com 2 vidas");
+
+    deathState.perderVida();
+    check(deathState.estaGameOver(), false, "GameState::continua com 1 vida");
+
+    deathState.perderVida();
+    check(deathState.estaGameOver(), true, "GameState::Game Over sem vidas");
+
+    GameState playerDeathState("Player");
+
+    check(playerDeathState.getPlayer().estaVivo(), true, "GameState::Player inicia vivo");
+    check(playerDeathState.getVidas(), 3, "GameState::Player inicia com 3 vidas");
+
+    playerDeathState.getPlayer().receberDano(100);
+
+    check(playerDeathState.getPlayer().estaVivo(), false, "GameState::Player morreu");
+
+    if (!playerDeathState.getPlayer().estaVivo()) {
+        playerDeathState.perderVida();
+    }
+
+    check(playerDeathState.getVidas(), 2, "GameState::morte remove uma vida");
+    check(playerDeathState.estaGameOver(), false, "GameState::ainda nao e Game Over");
 
     // =========================================================
     // Character - movimento
