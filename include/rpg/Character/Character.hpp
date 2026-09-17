@@ -19,6 +19,7 @@ public:
 	void gastarMana(int quantidade);
 	void recuperarMana(int quantidade);
 	void moverPara(const Position& posicao);
+	void restaurarEstado(int vida, int mana);
 	bool estaVivo() const;
 	int getAtaqueMinimo() const;
 	int getAtaqueMaximo() const;

@@ -1,4 +1,5 @@
 #include "rpg/Game/GameState.hpp"
+#include <algorithm>
 
 GameState::GameState(const std::string& nomePlayer) : player(nomePlayer) {}
 
@@ -40,4 +41,8 @@ bool GameState::perderVida()
 
 [[nodiscard]] bool GameState::estaGameOver() const {
     return vidas <= 0;
+}
+
+void GameState::restaurarVidas(int quantidade) {
+    vidas = std::clamp(quantidade, 0, 3);
 }

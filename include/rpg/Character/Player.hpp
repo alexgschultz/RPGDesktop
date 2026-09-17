@@ -17,4 +17,6 @@ public:
     Player(const std::string& nome);
     Inventory& getInventory();
     const Inventory& getInventory() const;
+
+    void restaurarProgressao(int level, int experiencia);
 };

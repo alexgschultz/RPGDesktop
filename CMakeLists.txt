@@ -15,8 +15,9 @@ add_executable(RPGTest
 	src/World/Region.cpp
 	src/World/World.cpp
 	src/Game/GameState.cpp
+	src/Save/SaveManager.cpp
 )
 
 target_include_directories(RPGTest PRIVATE include)
 
-target_compile_features(RPGTest PRIVATE cxx_std_20)
+target_compile_features(RPGTest PRIVATE cxx_std_23)

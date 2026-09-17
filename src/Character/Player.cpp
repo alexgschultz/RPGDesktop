@@ -1,4 +1,5 @@
 #include "rpg/Character/Player.hpp"
+#include <algorithm>
 
 Player::Player(const std::string& nome) : Character(nome, 10, 10) {}
 
@@ -36,4 +37,10 @@ void Player::ganharExperiencia(int quantidade) {
 		experiencia -= experienciaNecessaria();
 		level++;
 	}
+}
+
+void Player::restaurarProgressao(int level, int experiencia)
+{
+	this->level = std::max(1, level);
+	this->experiencia = std::max(0, experiencia);
 }

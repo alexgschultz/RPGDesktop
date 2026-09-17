@@ -1,4 +1,5 @@
 #include "rpg/Character/Character.hpp"
+#include <algorithm>
 
 Character::Character(const std::string& nome, int ataqueMinimo, int ataqueMaximo) : name(nome), ataqueMinimo(ataqueMinimo), ataqueMaximo(ataqueMaximo) {}
 
@@ -87,6 +88,12 @@ void Character::recuperarMana(int quantidade)
 void Character::moverPara(const Position& novaPosicao)
 {
 	posicao = novaPosicao;
+}
+
+void Character::restaurarEstado(int vida, int mana)
+{
+	this->vida = std::clamp(vida, 0, vidaMaxima);
+	this->mana = std::clamp(mana, 0, manaMaxima);
 }
 
 bool Character::estaVivo() const {

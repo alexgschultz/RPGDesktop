@@ -22,4 +22,6 @@ public:
     int getVidas() const;
     bool perderVida();
     [[nodiscard]] bool estaGameOver() const;
+
+    void restaurarVidas(int quantidade);
 };

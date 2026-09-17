@@ -9,6 +9,7 @@
 #include "rpg/World/Region.hpp"
 #include "rpg/World/World.hpp"
 #include "rpg/Game/GameState.hpp"
+#include "rpg/Save/SaveManager.hpp"
 
 #include <iostream>
 #include <string>
@@ -529,6 +530,113 @@ int main()
 
     check(playerDeathState.getVidas(), 2, "GameState::morte remove uma vida");
     check(playerDeathState.estaGameOver(), false, "GameState::ainda nao e Game Over");
+
+    // =========================================================
+	// SaveData - Inventory
+    // =========================================================
+
+    std::cout << "\n--- SaveInventory ---\n";
+
+    Inventory saveInventory;
+
+    saveInventory.adicionar(Item("Pocao de Cura", ItemType::Cura));
+    saveInventory.adicionar(Item("Pocao de Mana", ItemType::Mana));
+
+    check(static_cast<int>(saveInventory.getItems().size()), 2, "Inventory::getItems");
+
+    // =========================================================
+    // SaveManager - criar SaveData
+    // =========================================================
+
+    std::cout << "\n--- SaveManager / SaveData ---\n";
+
+    GameState saveState("Player");
+
+    saveState.getPlayer().receberDano(25);
+    saveState.getPlayer().gastarMana(40);
+    saveState.getPlayer().ganharExperiencia(150);
+
+    saveState.perderVida();
+    saveState.getWorld().changeRegion(RegionType::Forest);
+
+    saveState.getPlayer().getInventory().adicionar(Item("Pocao de Cura", ItemType::Cura));
+
+    SaveManager saveManager;
+
+    const SaveData data = saveManager.criarSaveData(saveState);
+
+    check(data.playerName == "Player", true, "SaveData::nome");
+    check(data.vida, 75, "SaveData::vida");
+    check(data.mana, 60, "SaveData::mana");
+
+    check(data.level, 2, "SaveData::level");
+    check(data.experiencia, 50, "SaveData::experiencia");
+
+    check(data.vidas, 2, "SaveData::vidas");
+
+    check(data.region == RegionType::Forest, true, "SaveData::regiao");
+
+    check(static_cast<int>(data.items.size()), 1, "SaveData::quantidade itens");
+    check(data.items[0].getType() == ItemType::Cura, true, "SaveData::item cura");
+
+    const std::filesystem::path savePath{ "save_test.dat" };
+
+    check(saveManager.save(data, savePath), true, "SaveManager::save");
+    check(std::filesystem::exists(savePath), true, "SaveManager::arquivo criado");
+
+    auto loaded = saveManager.load(savePath);
+
+    check(loaded.has_value(), true, "SaveManager::load");
+
+    if (loaded) {
+        const SaveData& loadedData = *loaded;
+
+        check(loadedData.playerName == "Player", true, "Load::nome");
+        check(loadedData.vida, 75, "Load::vida");
+        check(loadedData.mana, 60, "Load::mana");
+        check(loadedData.level, 2, "Load::level");
+        check(loadedData.experiencia, 50, "Load::experiencia");
+        check(loadedData.vidas, 2, "Load::vidas");
+
+        check(loadedData.region == RegionType::Forest, true, "Load::regiao");
+
+        check(static_cast<int>(loadedData.items.size()), 1, "Load::quantidade itens");
+
+        if (!loadedData.items.empty()) {
+            check(loadedData.items[0].getType() == ItemType::Cura, true, "Load::item tipo");
+            check(loadedData.items[0].getName() == "Pocao de Cura", true, "Load::item nome");
+        }
+    }
+
+    auto restored = saveManager.loadGameState(savePath);
+
+    check(restored.has_value(), true, "SaveManager::loadGameState");
+
+    if (restored) {
+        const GameState& restoredState = *restored;
+
+        check(restoredState.getPlayer().getName() == "Player", true, "Restore::nome");
+        check(restoredState.getPlayer().getVida(), 75, "Restore::vida");
+        check(restoredState.getPlayer().getMana(), 60, "Restore::mana");
+
+        check(restoredState.getPlayer().getLevel(), 2, "Restore::level");
+        check(restoredState.getPlayer().getExperiencia(), 50, "Restore::experiencia");
+
+        check(restoredState.getVidas(), 2, "Restore::vidas");
+
+        check(restoredState.getWorld().getCurrentRegionType() == RegionType::Forest, true, "Restore::regiao");
+
+        check(restoredState.getPlayer().getInventory().quantidade(), 1, "Restore::inventario");
+
+        const auto& items = restoredState.getPlayer().getInventory().getItems();
+
+        if (!items.empty()) {
+            check(items[0].getName() == "Pocao de Cura", true, "Restore::item nome");
+            check(items[0].getType() == ItemType::Cura, true, "Restore::item tipo");
+        }
+    }
+
+    check(std::filesystem::remove(savePath), true, "SaveManager::remove arquivo de teste");
 
     // =========================================================
     // Character - movimento

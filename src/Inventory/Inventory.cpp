@@ -30,3 +30,13 @@ bool Inventory::usar(int indice, Character& character) {
 	}
 	return false;
 }
+
+const std::vector<Item>& Inventory::getItems() const
+{
+	return items;
+}
+
+void Inventory::restaurar(const std::vector<Item>& novosItems)
+{
+	items = novosItems;
+}

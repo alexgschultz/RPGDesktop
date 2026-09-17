@@ -13,4 +13,9 @@ public:
     int quantidade() const;
     bool remover(int indice);
     bool usar(int indice, Character& character);
+
+    const std::vector<Item>& getItems() const;
+
+    void restaurar(const std::vector<Item>& novosItems);
 };
+
